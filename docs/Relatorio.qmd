@@ -1,0 +1,276 @@
+---
+title: "Relatório Trabalho Prático de Teste Baseado em Especificação"
+subtitle: "Método para adição de números inteiros muito, muito grandes"
+author: "Pedro Conrado"
+toc: true
+toc-title: Sumário
+number-sections: false
+highlight-style: pygments
+format: 
+  html:
+    embed-resources: true
+
+engine: knitr
+---
+
+```{css}
+#| echo: false
+ul,
+p {
+  text-align: justify !important
+}
+```
+
+
+## Introdução
+
+Este documento descreve o processo de teste baseado em especificação utilizado para derivar casos de teste para o método ``validateIdentifier()``, que verifica se um identificador é válido de acordo com as regras da linguagem 'Silly Pascal'.
+
+## Passos para execução do testes efetivo e sistemático
+
+### Passo 1 - Explorar o funcionamento do programa
+
+Primeiramente, exploramos como o programa deveria funcionar segundo a especificação:
+
+Vamos verificar com um identificador válido simples como "a":
+
+<(s="a"), (true)>
+
+
+Testando com um identificador válido de tamanho médio como "abc":
+
+<(s="abc"), (true)>
+
+
+Testando com um identificador válido que inclui números como "a1b2":
+
+<(s="a1b2"), (true)>
+
+
+Testando com um identificador inválido que não começa com letra como "1abc":
+
+<(s="1abc"), (false)>
+
+
+Testando com um identificador inválido por ter caracteres não permitidos como "a#bc":
+
+<(s="a#bc"), (false)>
+
+
+Testando com um identificador inválido por ter tamanho maior que o permitido como "abcdefg":
+
+<(s="abcdefg"), (false)>
+
+### Passo 2 - Identificar as partições
+
+#### Para cada entrada individualmente
+
+##### Parâmetro ``s``: 
+  
+##### O parâmetro ``s`` representa a string que contém o identificador a ser validado.
+
+``s`` com valor null (caso excepcional);
+``s`` vazia (string de comprimento 0);
+``s`` com comprimento 1;
+``s`` com comprimento entre 2 e 6;
+``s`` com comprimento maior que 6.
+
+##### Primeiro caractere de ``s``:
+
+Primeiro caractere é uma letra maiúscula;
+Primeiro caractere é uma letra minúscula;
+Primeiro caractere é um dígito;
+Primeiro caractere é outro tipo de caractere (símbolo, espaço, etc).
+
+##### Demais caracteres de ``s``:
+
+Contém apenas letras maiúsculas;
+Contém apenas letras minúsculas;
+Contém uma mistura de letras (maiúsculas e minúsculas);
+Contém letras e dígitos;
+Contém algum caractere não permitido (símbolos, espaços, etc).
+
+#### Para saídas esperadas
+O método retorna um valor booleano:
+
+``true`` (identificador válido);
+``false`` (identificador inválido).
+
+### Passo 3 - Identificar os valores limite
+
+Os valores limite neste problema estão relacionados principalmente ao comprimento da string e aos tipos de caracteres permitidos:
+
+Comprimento exatamente 1 (menor comprimento válido);
+Comprimento exatamente 6 (maior comprimento válido);
+Comprimento 7 (primeiro comprimento inválido por excesso);
+Caracteres no limiar do conjunto permitido:
+
+Caractere 'A' e 'Z' (limites de letras maiúsculas);
+Caractere 'a' e 'z' (limites de letras minúsculas);
+Caractere '0' e '9' (limites de dígitos);
+Caracteres imediatamente fora dos conjuntos permitidos (ex: '@', '[', '`', '{').
+
+### Passo 4 -  Derivar os casos de teste
+
+
+#### Definir como diminuir o número de casos de teste
+
+Para evitar uma explosão de casos de teste, vou eliminar algumas combinações de partições que possuem uma chance pequena de revelar erros:
+
+Os casos excepcionais (como null e string vazia) serão testados individualmente;
+Não é necessário testar todas as combinações possíveis de caracteres maiúsculos, minúsculos e dígitos;
+
+Portanto, na lista a seguir, marquei com um [x] partições que não testarei várias vezes:
+
+s:
+
+null [x]
+string vazia [x]
+comprimento 1
+comprimento entre 2 e 6
+comprimento maior que 6 [x]
+
+
+Primeiro caractere:
+
+letra maiúscula
+letra minúscula
+dígito [x]
+outro caractere [x]
+
+
+Demais caracteres:
+
+apenas letras maiúsculas
+apenas letras minúsculas
+mistura de letras
+letras e dígitos
+algum caractere não permitido [x]
+#### Derivar os casos de teste
+
+Combinando adequadamente as partições, derivamos os seguintes casos de teste:
+
+Casos de teste de exceção:
+
+T01: s=null
+T02: s="" (string vazia)
+
+
+Casos de teste para comprimento 1:
+
+T03: s="a" (letra minúscula)
+T04: s="A" (letra maiúscula)
+T05: s="1" (dígito, deve ser inválido)
+T06: s="@" (caractere especial, deve ser inválido)
+
+
+Casos de teste para comprimento entre 2 e 6 com primeiro caractere válido:
+
+T07: s="abcde" (letras minúsculas)
+T08: s="ABCDE" (letras maiúsculas)
+T09: s="aBcDe" (mistura de maiúsculas e minúsculas)
+T10: s="a1b2c" (letras e números)
+T11: s="A1B2C" (letras maiúsculas e números)
+
+
+Casos de teste para comprimento entre 2 e 6 com primeiro caractere inválido:
+
+T12: s="1abcd" (começa com dígito)
+T13: s="#abcd" (começa com caractere especial)
+
+
+Casos de teste para comprimento entre 2 e 6 com caracteres inválidos:
+
+T14: s="ab#cd" (contém caractere especial)
+T15: s="ab cd" (contém espaço)
+
+
+Casos de teste para valores limite:
+
+T16: s="a" (comprimento mínimo válido - já coberto por T03)
+T17: s="abcdef" (comprimento máximo válido - 6 caracteres)
+T18: s="abcdefg" (comprimento inválido - 7 caracteres)
+T19: s="A" (limite letra maiúscula - já coberto por T04)
+T20: s="Z" (limite letra maiúscula)
+T21: s="a" (limite letra minúscula - já coberto por T03)
+T22: s="z" (limite letra minúscula)
+T23: s="a0" (limite inferior dígito)
+T24: s="a9" (limite superior dígito)
+
+### Passo 5 - Automatizar os casos de teste usando JUnit
+
+::: {.callout-note title="Essa nota deve ser exlcuída do documento final, serve apenas para orientação do trabalho."}
+Aqui você deve descrever as dificuldades ou limitações que teve ao implementar os casos de teste usando JUnit.
+:::
+
+### Passo 6 - Aumentar a suíte de testes por meio de experiência e criatividade
+
+Ao revisar os testes, identifiquei alguns cenários adicionais que podem ser úteis para testar mais profundamente o comportamento do método:
+
+T25: ``s="a_bc"`` (uso de underscore, que é comum em identificadores mas não está explicitamente permitido)
+T26: ``s="ab+c"`` (uso de operador matemático como caractere)
+T27: ``s="abc\t"`` (uso de caractere de tabulação)
+T28: ``s="abCDeF"`` (string com exatamente 6 caracteres com mistura de maiúsculas e minúsculas)
+
+
+## Execução dos casos de teste
+
+### Resultado da execução dos casos de teste
+
+#### Ao executar os casos de teste com JUnit, obtivemos os seguintes resultados:
+
+#### Testes falhos:
+
+testEmptyString: Esperava-se false, mas o método lançou StringIndexOutOfBoundsException
+testSingleLowercaseLetter, testSingleUppercaseLetter: Esperava-se true, mas recebeu false
+testLowercaseLetters, testUppercaseLetters, testMixedCaseLetters, testLettersAndDigits, testUppercaseLettersAndDigits: Esperava-se true, mas recebeu false
+testMaximumValidLength, testMaxLengthMixedCase: Esperava-se true, mas recebeu false
+
+
+#### Testes bem-sucedidos:
+
+testSingleDigit, testSingleSpecialChar: Esperava-se false e recebeu false (mas por razões erradas)
+testStartsWithDigit, testStartsWithSpecialChar: Esperava-se false e recebeu false
+testContainsSpecialChar, testContainsSpace, testContainsUnderscore, testContainsMathOperator, testContainsTab: Esperava-se false e recebeu false (mas possivelmente por razões erradas)
+testExceedingMaximumLength: Esperava-se false e recebeu false
+
+### Defeitos encontrados durante a execução dos casos de teste
+
+##### A execução dos testes revelou vários defeitos críticos na implementação do método validateIdentifier:
+
+##### Problema com string vazia: O método tenta acessar o primeiro caractere de uma string vazia, causando ``StringIndexOutOfBoundsException``.
+Condição de comprimento incorreta: Na condição final, o método verifica (s.length() < 6) em vez de (s.length() <= 6), o que faz com que identificadores válidos de exatamente 6 caracteres sejam considerados inválidos.
+Lógica de validação dos caracteres subsequentes invertida: Na validação dos caracteres após o primeiro, o método define valid_id = false quando encontra um caractere válido, quando deveria ser o contrário.
+Loop incorreto: O loop começa em i = 1 e verifica até i < s.length() - 1, o que significa que o último caractere nunca é verificado.
+Verificação redundante: A variável achar é atribuída duas vezes, sendo que a segunda atribuição na linha após a inicialização do loop é desnecessária.
+
+
+### Defeitos corrigidos e testes de regressão
+
+Abaixo está a versão corrigida do método ``validateIdentifier``:
+
+public boolean validateIdentifier(String s) {
+    // Verificação para string null ou vazia
+    if (s == null || s.length() == 0) {
+        return false;
+    }
+    
+    char achar = s.charAt(0);
+    boolean valid_id = ((achar >= 'A') && (achar <= 'Z')) || ((achar >= 'a') && (achar <= 'z'));
+    
+    if (valid_id) {
+        // Verifica os demais caracteres
+        for (int i = 1; i < s.length(); i++) {
+            achar = s.charAt(i);
+            if (!(((achar >= 'A') && (achar <= 'Z')) || 
+                  ((achar >= 'a') && (achar <= 'z')) || 
+                  ((achar >= '0') && (achar <= '9')))) {
+                valid_id = false;
+                break;
+            }
+        }
+    }
+    
+    // Verifica o comprimento
+    return valid_id && (s.length() >= 1) && (s.length() <= 6);
+}
